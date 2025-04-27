@@ -1,5 +1,5 @@
 {
-  "name": "full-backend-2",
+  "name": "full-backend-3",
   "version": "1.0.0",
   "main": "server.js",
   "type": "module",
@@ -14,12 +14,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "A dockerized full stack todo application that uses a NodeJs backend, a PostgreSQL databse, a prisma ORM, and JWT Authentication",
   "dependencies": {
+    "@prisma/client": "^6.6.0",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^11.9.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.15.6",
+    "prisma": "^6.6.0"
   }
 }

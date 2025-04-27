@@ -1,45 +1,66 @@
 import express from "express";
 import db from "../db.js";
+import prisma from "../prismaClient.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) =>{
+router.get("/", async (req, res) =>{
     
-    
-    const getTodos = db.prepare(`SELECT * FROM todos WHERE user_id = ?`);
-    const todos = getTodos.all(req.userId);
+    const todos = await prisma.todo.findMany({
+      where:{
+         userId: req.userId
+      }
+    })
+   
     res.status(200).json(todos)
 
 
 });
 
-router.post("/", (req, res) =>{
+router.post("/", async (req, res) =>{
    const {task} = req.body;
 
-   const insertTodo = db.prepare(`INSERT INTO todos (user_id, task) VALUES (?, ?)`);
-   const result = insertTodo.run(req.userId, task);
+   const todo = await prisma.todo.create({
+      data:{
+         task,
+         userId: req.userId
+      }
+   })
 
-   res.status(201).json({id: result.lastInsertRowid, task: task, completed: 0});
+   res.status(201).json(todo);
 });
 
-router.put("/:id", (req, res) =>{
+router.put("/:id", async (req, res) =>{
 
     const { completed } = req.body
     const { id } = req.params;
+    const userId = req.userId;
     
-   const updatedTodo = db.prepare(`UPDATE todos SET completed = ? WHERE id = ?`);
-   updatedTodo.run(completed, id);
+   const updatedTodo = await prisma.todo.update({
+      where:{
+         id: parseInt(id),
+         userId
+      },
+      data:{
+         completed: !!completed
+      }
+   })
 
-   res.status(201).json({message: "Todo completed"})
+   res.status(201).json(updatedTodo)
 })
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
    const { id } = req.params;
    const userId = req.userId;
-   const deletedTodo = db.prepare(`DELETE FROM todos WHERE id = ? AND user_id = ?`);
-   deletedTodo.run(id, userId);
 
-   res.status(201).json({message: "Todo deleted"});
+   const deletedTodo = await prisma.todo.delete({
+      where:{
+         id: parent(id),
+         userId
+      }
+   })
+
+   res.status(201).json(deletedTodo);
 })
 
 

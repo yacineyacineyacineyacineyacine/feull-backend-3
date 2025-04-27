@@ -3,10 +3,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import db from "../db.js";
 import { log } from "console";
+import prisma from "../prismaClient.js";
 
 const router = express.Router();
 
-router.post("/register", (req, res)=> {
+router.post("/register", async (req, res)=> {
     const { username, password } = req.body;
     
     const salt = bcrypt.genSaltSync(8);
@@ -14,14 +15,22 @@ router.post("/register", (req, res)=> {
 
     try {
         
-       const insertUser =  db.prepare(`INSERT INTO users (username, password) VALUES (?, ?)`);
-       const result = insertUser.run(username, hashedPassword);     
-              
-       const defaultTodo = `Hello :) Add you first todo!`;
-       const inserTodo = db.prepare(`INSERT INTO todos (user_id, task) VALUES (?, ?)`);
-       inserTodo.run(result.lastInsertRowid, defaultTodo);
+       const user = await prisma.user.create({
+        data:{
+            username,
+            password: hashedPassword
+        }
+       })
 
-       const token = jwt.sign({id: result.lastInsertRowid}, process.env.JWT_SECRET, {expiresIn: "24h"});
+       const defaultTodo = "Hello :) Add your first todo!";
+        await prisma.todo.create({
+         data:{
+            task: defaultTodo,
+            userId: user.id
+         }
+       })
+
+       const token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: "24h"});
               
         res.status(201).json({token})
     } catch (error) {
@@ -36,13 +45,17 @@ router.post("/register", (req, res)=> {
 
 });
 
-router.post("/login", (req, res)=> {
+router.post("/login", async (req, res)=> {
     
     const { username, password } = req.body;
    
     try {
-        const getUser = db.prepare(`SELECT * FROM users WHERE username = ?`);
-        const user = getUser.get(username);
+        const user = await prisma.user.findUnique({
+            where:{
+                username: username
+            }
+        })
+       
     
         if(!user) return res.status(404).json({message: "User not found"})
     

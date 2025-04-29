@@ -4,4 +4,4 @@ BACKEND_2
 BACKEND_2-shm
 BACKEND_2-wal
 
-generated/prisma
+src/generated/
